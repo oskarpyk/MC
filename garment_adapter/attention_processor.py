@@ -236,6 +236,7 @@ class AttnProcessor2_0(nn.Module):
         elif attn.norm_cross:
             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
 
+        args = () if USE_PEFT_BACKEND else (scale,)
         key = attn.to_k(encoder_hidden_states, *args)
         value = attn.to_v(encoder_hidden_states, *args)
 
