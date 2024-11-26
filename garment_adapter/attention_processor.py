@@ -143,7 +143,7 @@ class REFAttnProcessor(nn.Module):
         if attn.group_norm is not None:
             hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
 
-        query = attn.to_q(hidden_states)
+        query = attn.to_q(hidden_states) if USE_PEFT_BACKEND else attn.to_q(hidden_states, scale)
 
         if encoder_hidden_states is None:
             encoder_hidden_states = hidden_states
@@ -237,8 +237,8 @@ class AttnProcessor2_0(nn.Module):
             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
 
         args = () if USE_PEFT_BACKEND else (scale,)
-        key = attn.to_k(encoder_hidden_states, *args)
-        value = attn.to_v(encoder_hidden_states, *args)
+        key = attn.to_k(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_k(encoder_hidden_states, scale)
+        value = attn.to_v(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_v(encoder_hidden_states, scale)
 
         inner_dim = key.shape[-1]
         head_dim = inner_dim // attn.heads
@@ -809,7 +809,7 @@ class StableREFAttnProcessor2_0(nn.Module):
         hidden_states = hidden_states + self.scale * ip_hidden_states
 
         # linear proj
-        hidden_states = attn.to_out[0](hidden_states, *args)
+        hidden_states = attn.to_out[0](hidden_states) if USE_PEFT_BACKEND else attn.to_out[0](hidden_states, scale)
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
