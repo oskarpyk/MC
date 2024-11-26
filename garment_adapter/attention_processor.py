@@ -69,7 +69,10 @@ class AttnProcessor(nn.Module):
         hidden_states = attn.batch_to_head_dim(hidden_states)
 
         # linear proj
-        hidden_states = attn.to_out[0](hidden_states, *args)
+        if USE_PEFT_BACKEND:
+            hidden_states = attn.to_out[0](hidden_states)
+        else:
+            hidden_states = attn.to_out[0](hidden_states, scale)
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
@@ -223,8 +226,10 @@ class AttnProcessor2_0(nn.Module):
         if attn.group_norm is not None:
             hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
 
-        args = () if USE_PEFT_BACKEND else (scale,)
-        query = attn.to_q(hidden_states, *args)
+        if USE_PEFT_BACKEND:
+            query = attn.to_q(hidden_states)
+        else:
+            query = attn.to_q(hidden_states, scale)
 
         if encoder_hidden_states is None:
             encoder_hidden_states = hidden_states
