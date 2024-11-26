@@ -57,8 +57,8 @@ class AttnProcessor(nn.Module):
         elif attn.norm_cross:
             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
 
-        key = attn.to_k(encoder_hidden_states, *args)
-        value = attn.to_v(encoder_hidden_states, *args)
+        key = attn.to_k(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_k(encoder_hidden_states, scale)
+        value = attn.to_v(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_v(encoder_hidden_states, scale)
 
         query = attn.head_to_batch_dim(query)
         key = attn.head_to_batch_dim(key)
@@ -362,7 +362,7 @@ class REFAttnProcessor2_0(nn.Module):
         if self.type == "write":
             hidden_states, _ = torch.chunk(hidden_states, 2, dim=1)
         # linear proj
-        hidden_states = attn.to_out[0](hidden_states, *args)
+        hidden_states = attn.to_out[0](hidden_states) if USE_PEFT_BACKEND else attn.to_out[0](hidden_states, scale)
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
