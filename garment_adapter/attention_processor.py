@@ -165,7 +165,7 @@ class REFAttnProcessor(nn.Module):
             hidden_states, _ = torch.chunk(hidden_states, 2, dim=1)
 
         # linear proj
-        hidden_states = attn.to_out[0](hidden_states) if USE_PEFT_BACKEND else attn.to_out[0](hidden_states, scale)
+        hidden_states = attn.to_out[0](hidden_states)
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
