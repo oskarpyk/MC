@@ -27,10 +27,16 @@ class ClothAdapter:
         if ref_unet.config.in_channels == 9:
             ref_unet.conv_in = torch.nn.Conv2d(4, 320, ref_unet.conv_in.kernel_size, ref_unet.conv_in.stride, ref_unet.conv_in.padding)
             ref_unet.register_to_config(in_channels=4)
-        state_dict = {}
-        with safe_open(ref_path, framework="pt", device="cpu") as f:
-            for key in f.keys():
-                state_dict[key] = f.get_tensor(key)
+        try:
+            state_dict = {}
+            print(f"Loading reference model from {ref_path}")
+            with safe_open(ref_path, framework="pt", device="cpu") as f:
+                for key in f.keys():
+                    state_dict[key] = f.get_tensor(key)
+        except Exception as e:
+            print(f"Error loading reference model: {str(e)}")
+            print(f"Please verify that {ref_path} is a valid safetensors file")
+            raise
         ref_unet.load_state_dict(state_dict, strict=False)
 
         self.ref_unet = ref_unet.to(self.device, dtype=self.pipe.dtype)

@@ -35,6 +35,10 @@ if __name__ == "__main__":
         pipe = StableDiffusionPipeline.from_pretrained(args.pipe_path, vae=vae, torch_dtype=torch.float16)
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 
+    if not os.path.exists(args.model_path):
+        raise ValueError(f"Model path does not exist: {args.model_path}")
+    
+    print(f"Loading model from: {args.model_path}")
     full_net = ClothAdapter(pipe, args.model_path, device, args.enable_cloth_guidance, False)
     images = full_net.generate(cloth_image)
     for i, image in enumerate(images[0]):
