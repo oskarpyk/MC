@@ -57,8 +57,8 @@ class AttnProcessor(nn.Module):
         elif attn.norm_cross:
             encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
 
-        key = attn.to_k(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_k(encoder_hidden_states, scale)
-        value = attn.to_v(encoder_hidden_states) if USE_PEFT_BACKEND else attn.to_v(encoder_hidden_states, scale)
+        key = attn.to_k(encoder_hidden_states * scale) if not USE_PEFT_BACKEND else attn.to_k(encoder_hidden_states)
+        value = attn.to_v(encoder_hidden_states * scale) if not USE_PEFT_BACKEND else attn.to_v(encoder_hidden_states)
 
         query = attn.head_to_batch_dim(query)
         key = attn.head_to_batch_dim(key)
@@ -143,7 +143,7 @@ class REFAttnProcessor(nn.Module):
         if attn.group_norm is not None:
             hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
 
-        query = attn.to_q(hidden_states) if USE_PEFT_BACKEND else attn.to_q(hidden_states, scale)
+        query = attn.to_q(hidden_states * scale) if not USE_PEFT_BACKEND else attn.to_q(hidden_states)
 
         if encoder_hidden_states is None:
             encoder_hidden_states = hidden_states
@@ -258,7 +258,7 @@ class AttnProcessor2_0(nn.Module):
         hidden_states = hidden_states.to(query.dtype)
 
         # linear proj
-        hidden_states = attn.to_out[0](hidden_states) if USE_PEFT_BACKEND else attn.to_out[0](hidden_states, scale)
+        hidden_states = attn.to_out[0](hidden_states * scale) if not USE_PEFT_BACKEND else attn.to_out[0](hidden_states)
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
